@@ -20,13 +20,14 @@ done
 
 for file in "$@"
 do
-    while IFS=, read -r delta theta Re We C xL yL T
-    do
+    N=$(sed -n '$=' $file)
+
     
-        fileout="$HOME/colab-ruben-benney/pbs-scripts/run-d-$delta-theta-$theta-Re-$Re-We-$We-C-$C-xL-$xL-yL-$yL-T-$T.pbs"
-        echo "#!/bin/sh
+    fileout="$HOME/colab-ruben-benney/pbs-scripts/run-${file%.*}.pbs"
+    echo "#!/bin/sh
 #PBS -l walltime=24:00:00
 #PBS -l select=1:ncpus=8:mem=8gb
+#PBS -J 1-$N
 
 echo Loading matlab
 module load matlab
@@ -37,19 +38,20 @@ cp \$HOME/colab-ruben-benney/code \$TMPDIR -r
 echo Moving into directory
 cd code
 
-echo Running matlab command
-matlab -nodesktop -nojvm -r 'create($delta,$theta,$Re,$We,$C,$xL,$yL,$T); quit'
+echo Reading csv file
+params=\$(sed -n "\${PBS_ARRAY_INDEX}p" \$HOME/colab-ruben-benney/pbs-scripts/$file)
 
-echo Moving data
-mv data-* \$HOME/colab-ruben-benney/data/
+echo Running matlab command
+matlab -nodesktop -nojvm -r 'create('\$params'); quit'
+
+cp data-* \$HOME/colab-ruben-benney/data/
 
 echo Complete
-        " > $fileout
+    " > $fileout
         
-        if [ $run = true ]
-        then
-            qsub $fileout
-        fi
-    done < $file
+    if [ $run = true ]
+    then
+        qsub $fileout
+    fi
 done
 exit 0
