@@ -23,31 +23,22 @@ do
     N=$(sed -n '$=' $file)
 
     base=${file##*/}
-    fileout="./run-${base%.*}.pbs"
+    fileout="./${base%.*}.pbs"
     echo "#!/bin/sh
 #PBS -l walltime=24:00:00
 #PBS -l select=1:ncpus=8:mem=8gb
 #PBS -J 1-$N
 
-echo Loading matlab
-module load matlab
-
-echo Copying directory
 cp \$HOME/colab-ruben-benney/code \$TMPDIR -r
-
-echo Moving into directory
 cd code
 
-echo Reading csv file
 params=\$(sed -n "\${PBS_ARRAY_INDEX}p" \$HOME/colab-ruben-benney/pbs-scripts/$file)
 
-echo Running matlab command
+module load matlab
 matlab -nodesktop -nojvm -r 'create('\$params'); quit'
 
 cp data-* \$HOME/colab-ruben-benney/data/
-
-echo Complete
-    " > $fileout
+" > $fileout
         
     if [ $run = true ]
     then
