@@ -55,3 +55,14 @@ def test_walltimeArgument():
     f  = open("testExpectedWalltime.pbs","r")
     expected = f.read()
     assert actual == expected
+
+
+def test_runScript():
+    bashCommand = "python3 generate-pbs.py -r test.csv"
+    process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
+    output, error = process.communicate()
+    f  = open("test.pbs","r")
+    actual = f.read()
+    f  = open("testExpected.pbs","r")
+    expected = f.read()
+    assert actual == expected

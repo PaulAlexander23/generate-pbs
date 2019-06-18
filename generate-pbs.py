@@ -1,8 +1,9 @@
 #usr/local/bin/python3
 
 import argparse
+import subprocess
 
-def main(walltime, memory, arrayJobSize, paramsFile, wibl1):
+def main(walltime, memory, arrayJobSize, paramsFile, wibl1, pbsFilename):
     string = "#!/bin/sh\n"
     string += getPBSString(walltime, memory, arrayJobSize)
     string += getDirectoryCopyString()
@@ -10,7 +11,8 @@ def main(walltime, memory, arrayJobSize, paramsFile, wibl1):
     string += getMatlabString(wibl1)
     string += getDataCopyString()
 
-    writeToFile("test.pbs", string)
+    print(pbsFilename)
+    writeToFile(pbsFilename, string)
 
 
 def writeToFile(filename, string):
@@ -61,6 +63,7 @@ if __name__=="__main__":
     parser.add_argument("-t","--walltime", type=str)
     parser.add_argument("-m","--memory", type=int)
     parser.add_argument("--wibl1", action="store_true")
+    parser.add_argument("-r","--runPBSScript", action="store_true")
 
     args = parser.parse_args()
 
@@ -78,6 +81,11 @@ if __name__=="__main__":
         wibl1 = True
     else:
         wibl1 = False
+
     for currentFile in args.files:
         arrayJobSize = sum(1 for line in open(currentFile))
-        main(walltime, memory, arrayJobSize, currentFile, wibl1)
+        pbsFilename = currentFile.rstrip('.csv') + '.pbs'
+        main(walltime, memory, arrayJobSize, currentFile, wibl1, pbsFilename)
+        if args.runPBSScript:
+            process = subprocess.Popen("qsub {}".format(pbsFilename).split(), stdout=subprocess.PIPE)
+            output, error = process.communicate()
