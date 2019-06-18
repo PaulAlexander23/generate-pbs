@@ -64,28 +64,24 @@ if __name__=="__main__":
     parser.add_argument("-m","--memory", type=int)
     parser.add_argument("--wibl1", action="store_true")
     parser.add_argument("-r","--runPBSScript", action="store_true")
+    parser.add_argument("-o","--outputDirectory", type=str)
 
     args = parser.parse_args()
 
     if args.walltime is None:
-        walltime = "24:00:00"
-    else:
-        walltime = args.walltime
+        args.walltime = "24:00:00"
 
     if args.memory is None:
-        memory = 8
-    else:
-        memory = args.memory
+        args.memory = 8
 
-    if args.wibl1:
-        wibl1 = True
-    else:
-        wibl1 = False
+    if args.outputDirectory is None:
+        args.outputDirectory = ""
 
     for currentFile in args.files:
+        currentFile = currentFile.split('/')[-1]
         arrayJobSize = sum(1 for line in open(currentFile))
-        pbsFilename = currentFile.rstrip('.csv') + '.pbs'
-        main(walltime, memory, arrayJobSize, currentFile, wibl1, pbsFilename)
+        pbsFilename = args.outputDirectory + currentFile.rstrip('.csv') + '.pbs'
+        main(args.walltime, args.memory, arrayJobSize, currentFile, args.wibl1, pbsFilename)
         if args.runPBSScript:
             process = subprocess.Popen("qsub {}".format(pbsFilename).split(), stdout=subprocess.PIPE)
             output, error = process.communicate()
