@@ -27,7 +27,7 @@ for file in "$@"
 do
     N=$(sed -n '$=' $file)
 
-    folder="$echo ${PWD##*/}"
+    folder="$echo${PWD##*/}"
     fileout="$folder.pbs"
 
     echo $fileout
@@ -47,10 +47,10 @@ echo Loading matlab
 module load matlab
 
 echo Copying repository to temporay directory
-cp \$HOME/Repositories/hanging-films \$TMPDIR -r
+cp \$HOME/Repositories/$folder \$TMPDIR -r
 
 echo Moving into directory
-cd \$TMPDIR/hanging-films" >> $fileout
+cd \$TMPDIR/$folder" >> $fileout
 
     
     if [[ $N -gt 1 ]]
@@ -70,7 +70,7 @@ echo Creating data destination folder
 mkdir -p \$MYARRAYJOBID
 
 echo Running matlab command
-matlab -nodesktop -nojvm -r 'main('\$params', \"$WALLTIME\"); quit'
+matlab -nodesktop -nojvm -r 'maxNumCompThreads($NCPUS); main('\$params', \"$WALLTIME\"); quit'
 
 echo Moving data to destination folder
 mv data-* \$MYARRAYJOBID
