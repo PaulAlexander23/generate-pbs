@@ -1,15 +1,19 @@
 #!/bin/sh
+
 #PBS -l walltime=24:00:00
-#PBS -l select=1:ncpus=8:mem=8gb
+#PBS -l select=1:ncpus=16:mem=8gb
 #PBS -J 1-3
 
-cp $HOME/colab-ruben-benney/code $TMPDIR -r
-cd code
+MYJOBID=$(echo ${PBS_ARRAY_ID}| sed 's/\[.*//')
+params=$(sed -n ${PBS_ARRAY_INDEX}p test.csv)
 
-params=$(sed -n ${PBS_ARRAY_INDEX}p $HOME/colab-ruben-benney/pbs-scripts/test.csv)
+mkdir -p $MYJOBID
+destDir=$(pwd)/$MYJOBID
+
+cp $HOME/Repositories/generate-pbs $TMPDIR -r
+cd $TMPDIR/generate-pbs
 
 module load matlab
-matlab -nodesktop -nojvm -r 'create('$params'); quit'
+matlab -nodesktop -nojvm -r 'maxNumCompThreads(16); main('$params', "24:00:00"); quit'
 
-cp data-* $HOME/colab-ruben-benney/data/
-
+mv data-* $destDir
