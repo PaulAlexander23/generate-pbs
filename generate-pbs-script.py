@@ -81,7 +81,7 @@ if __name__=="__main__":
     for currentFile in args.files:
         currentFile = os.getcwd() + "/" + currentFile
         arrayJobSize = sum(1 for line in open(currentFile))
-        pbsFilename = currentFile.rstrip('.csv') + '.pbs'
+        pbsFilename = currentFile.replace('.csv', '.pbs')
 
         main(args.walltime, args.ncpus, args.memory, arrayJobSize, currentFile, args.wibl1, pbsFilename, args.repositoryFolder)
 
