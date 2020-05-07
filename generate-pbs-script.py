@@ -79,7 +79,7 @@ if __name__=="__main__":
     args = parser.parse_args()
 
     for currentFile in args.files:
-        currentFile = currentFile.split('/')[-1]
+        currentFile = os.getcwd() + "/" + currentFile
         arrayJobSize = sum(1 for line in open(currentFile))
         pbsFilename = currentFile.rstrip('.csv') + '.pbs'
 

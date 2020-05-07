@@ -5,7 +5,7 @@
 #PBS -J 1-3
 
 MYJOBID=$(echo ${PBS_ARRAY_INDEX}| sed 's/\[.*//')
-params=$(sed -n ${PBS_ARRAY_INDEX}p test.csv)
+params=$(sed -n ${PBS_ARRAY_INDEX}p /Users/paul/Repositories/generate-pbs/test.csv)
 
 mkdir -p $MYJOBID
 destDir=$(pwd)/$MYJOBID
