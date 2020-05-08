@@ -8,8 +8,9 @@ def main(walltime, ncpus, memory, arrayJobSize, paramsFile, wibl1, pbsFilename, 
     string = "#!/bin/sh\n\n"
     string += getPBSString(walltime, ncpus, memory, arrayJobSize)
     string += getParamsString(paramsFile, arrayJobSize)
-    string += getDestString()
+    string += getDestString(paramsFile)
     string += getDirectoryCopyString(repoFilename)
+    string += getICCopyString(paramsFile, repoFilename)
     string += getMatlabString(ncpus, walltime)
     string += getDataCopyString()
 
@@ -25,24 +26,27 @@ def writeToFile(filename, string):
 def getPBSString(walltime, ncpus, memory, arrayJobSize):
     string = "#PBS -l walltime={}\n".format(walltime)
     string += "#PBS -l select=1:ncpus={}:mem={}gb\n".format(ncpus, memory)
-    string += "#PBS -J 1-{}\n".format(arrayJobSize)
+    if arrayJobSize > 1:
+        string += "#PBS -J 1-{}\n".format(arrayJobSize)
     string += "\n"
     return string
 
 
 def getParamsString(paramsFile, arrayJobSize):
     if arrayJobSize == 1:
-        string = "$MYJOBID=$(echo ${PBS_JOBID})\n"
-        string += "$(cat {})\n".format(paramsFile)
+        string = "MYJOBID=$(echo ${PBS_JOBID}| sed 's/.pbs//')\n"
+        string += "params=$(sed -n 1p {})\n".format(paramsFile)
     else:
         string = "MYJOBID=$(echo ${PBS_ARRAY_INDEX}| sed 's/\[.*//')\n"
         string += "params=$(sed -n ${{PBS_ARRAY_INDEX}}p {})\n".format(paramsFile)
     string += "\n"
     return string
 
-def getDestString():
-    string = "mkdir -p $MYJOBID\n"
-    string += "destDir=$(pwd)/$MYJOBID\n"
+
+def getDestString(paramsFile):
+    folder = os.path.dirname(paramsFile)
+    string = "destDir={}/$MYJOBID\n".format(folder)
+    string += "mkdir -p $destDir\n"
     string += "\n"
     return string
 
@@ -50,6 +54,13 @@ def getDestString():
 def getDirectoryCopyString(repoFilename):
     string = "cp $HOME/Repositories/{} $TMPDIR -r\n".format(repoFilename)
     string += "cd $TMPDIR/{}\n".format(repoFilename)
+    string += "\n"
+    return string
+
+
+def getICCopyString(paramsFile, repoFilename):
+    folder = os.path.dirname(paramsFile)
+    string = "cp {}/ic-* $TMPDIR/{} \n".format(folder, repoFilename)
     string += "\n"
     return string
 
