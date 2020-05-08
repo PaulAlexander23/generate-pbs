@@ -33,47 +33,64 @@ def getPBSString(walltime, ncpus, memory, arrayJobSize):
 
 
 def getParamsString(paramsFile, arrayJobSize):
+    string = "echo Getting job id\n"
     if arrayJobSize == 1:
-        string = "MYJOBID=$(echo ${PBS_JOBID}| sed 's/.pbs//')\n"
+        string += "MYJOBID=$(echo ${PBS_JOBID}| sed 's/.pbs//')\n"
+    else:
+        string += "MYJOBID=$(echo ${PBS_ARRAY_INDEX}| sed 's/\[.*//')\n"
+    string += "echo MYJOBID: $MYJOBID\n"
+    string += "\n"
+
+    string += "echo Setting params\n"
+    if arrayJobSize == 1:
         string += "params=$(sed -n 1p {})\n".format(paramsFile)
     else:
-        string = "MYJOBID=$(echo ${PBS_ARRAY_INDEX}| sed 's/\[.*//')\n"
         string += "params=$(sed -n ${{PBS_ARRAY_INDEX}}p {})\n".format(paramsFile)
+    string += "echo params: $params\n"
     string += "\n"
     return string
 
 
 def getDestString(paramsFile):
+    string = "echo Setting destination directory\n"
     folder = os.path.dirname(paramsFile)
-    string = "destDir={}/$MYJOBID\n".format(folder)
+    string += "echo folder: $folder\n"
+    string += "destDir={}/$MYJOBID\n".format(folder)
+    string += "echo destDir: $destDir\n"
     string += "mkdir -p $destDir\n"
     string += "\n"
     return string
 
 
 def getDirectoryCopyString(repoFilename):
-    string = "cp $HOME/Repositories/{} $TMPDIR -r\n".format(repoFilename)
+    string = "echo Copying and moving into code repository\n"
+    string += "cp $HOME/Repositories/{} $TMPDIR -r\n".format(repoFilename)
+    string += "echo repoFilename: {}\n".format(repoFilename)
     string += "cd $TMPDIR/{}\n".format(repoFilename)
     string += "\n"
     return string
 
 
 def getICCopyString(paramsFile, repoFilename):
+    string = "echo Copying ics to folder\n"
     folder = os.path.dirname(paramsFile)
-    string = "cp {}/ic-* $TMPDIR/{} \n".format(folder, repoFilename)
+    string += "cp {}/ic-* $TMPDIR/{} \n".format(folder, repoFilename)
     string += "\n"
     return string
 
 
 def getMatlabString(ncpus, walltime):
-    string = "module load matlab\n"
+    string = "echo Loading matlab\n"
+    string += "module load matlab\n"
+    string += "echo Running matlab command: matlab -nodesktop -nojvm -r 'maxNumCompThreads({}); main('$params', \"{}\"); quit'\n".format(ncpus, walltime)
     string += "matlab -nodesktop -nojvm -r 'maxNumCompThreads({}); main('$params', \"{}\"); quit'\n".format(ncpus, walltime)
     string += "\n"
     return string
 
 
 def getDataCopyString():
-    string = "mv data-* $destDir\n"
+    string = "echo Moving Data\n"
+    string += "mv data-* $destDir\n"
     return string
 
 
