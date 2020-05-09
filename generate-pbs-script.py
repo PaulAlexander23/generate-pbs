@@ -8,7 +8,7 @@ def main(walltime, ncpus, memory, arrayJobSize, paramsFile, wibl1, pbsFilename, 
     string = "#!/bin/sh\n\n"
     string += getPBSString(walltime, ncpus, memory, arrayJobSize)
     string += getParamsString(paramsFile, arrayJobSize)
-    string += getDestString(paramsFile)
+    string += getDestString(paramsFile, arrayJobSize)
     string += getDirectoryCopyString(repoFilename)
     string += getICCopyString(paramsFile, repoFilename)
     string += getMatlabString(ncpus, walltime)
@@ -34,10 +34,7 @@ def getPBSString(walltime, ncpus, memory, arrayJobSize):
 
 def getParamsString(paramsFile, arrayJobSize):
     string = "echo Getting job id\n"
-    if arrayJobSize == 1:
-        string += "MYJOBID=$(echo ${PBS_JOBID}| sed 's/.pbs//')\n"
-    else:
-        string += "MYJOBID=$(echo ${PBS_ARRAY_INDEX}| sed 's/\[.*//')\n"
+    string += "MYJOBID=$(echo ${PBS_JOBID}| sed 's/.pbs//'| sed 's/\[[0-9]*\]//')\n"
     string += "echo MYJOBID: $MYJOBID\n"
     string += "\n"
 
@@ -50,14 +47,18 @@ def getParamsString(paramsFile, arrayJobSize):
     string += "\n"
     return string
 
-
-def getDestString(paramsFile):
+def getDestString(paramsFile, arrayJobSize):
     string = "echo Setting destination directory\n"
     folder = os.path.dirname(paramsFile)
-    string += "echo folder: $folder\n"
-    string += "destDir={}/$MYJOBID\n".format(folder)
+    string += "echo folder: {}\n".format(folder)
+    if arrayJobSize == 1:
+        string += "destDir={}/$MYJOBID\n".format(folder)
+        string += "mkdir -p $destDir\n"
+    else:
+        string += "destDir={}/$MYJOBID/${{PBS_ARRAY_INDEX}}\n".format(folder)
+        string += "mkdir -p {}/$MYJOBID\n".format(folder)
+        string += "mkdir -p $destDir\n"
     string += "echo destDir: $destDir\n"
-    string += "mkdir -p $destDir\n"
     string += "\n"
     return string
 
