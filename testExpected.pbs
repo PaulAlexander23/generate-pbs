@@ -4,16 +4,33 @@
 #PBS -l select=1:ncpus=16:mem=8gb
 #PBS -J 1-3
 
-MYJOBID=$(echo ${PBS_ARRAY_INDEX}| sed 's/\[.*//')
+echo Getting job id
+MYJOBID=$(echo ${PBS_JOBID}| sed 's/.pbs//'| sed 's/\[[0-9]*\]//')
+echo MYJOBID: $MYJOBID
+
+echo Setting params
 params=$(sed -n ${PBS_ARRAY_INDEX}p /Users/paul/Repositories/generate-pbs/test.csv)
+echo params: $params
 
-mkdir -p $MYJOBID
-destDir=$(pwd)/$MYJOBID
+echo Setting destination directory
+echo folder: /Users/paul/Repositories/generate-pbs
+destDir=/Users/paul/Repositories/generate-pbs/$MYJOBID/${PBS_ARRAY_INDEX}
+mkdir -p /Users/paul/Repositories/generate-pbs/$MYJOBID
+mkdir -p $destDir
+echo destDir: $destDir
 
+echo Copying and moving into code repository
 cp $HOME/Repositories/Repositories $TMPDIR -r
+echo repoFilename: Repositories
 cd $TMPDIR/Repositories
 
+echo Copying ics to folder
+cp /Users/paul/Repositories/generate-pbs/ic-* $TMPDIR/Repositories 
+
+echo Loading matlab
 module load matlab
+echo Running matlab command: matlab -nodesktop -nojvm -r 'maxNumCompThreads(16); main('$params', "24:00:00"); quit'
 matlab -nodesktop -nojvm -r 'maxNumCompThreads(16); main('$params', "24:00:00"); quit'
 
+echo Moving Data
 mv data-* $destDir
