@@ -4,7 +4,36 @@ import argparse
 import subprocess
 import os
 
-def main(walltime, ncpus, memory, arrayJobSize, paramsFile, wibl1, pbsFilename, repoFilename):
+def main():
+    args = parseArguments()
+
+    for currentFile in args.files:
+        currentFile = os.getcwd() + "/" + currentFile
+        arrayJobSize = sum(1 for line in open(currentFile))
+        pbsFilename = currentFile.replace('.csv', '.pbs')
+
+        createPBSFile(args.walltime, args.ncpus, args.memory, arrayJobSize, currentFile, args.wibl1,
+                pbsFilename, args.repositoryFolder)
+
+        if args.runPBSScript:
+            process = subprocess.Popen("qsub {}".format(pbsFilename).split(), stdout=subprocess.PIPE)
+            output, error = process.communicate()
+
+
+def parseArguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("files", nargs='+')
+    parser.add_argument("-t","--walltime", type=str, default="24:00:00")
+    parser.add_argument("-c","--ncpus", type=int, default=16)
+    parser.add_argument("-m","--memory", type=int, default=8)
+    parser.add_argument("--wibl1", action="store_true")
+    parser.add_argument("-r","--runPBSScript", action="store_true")
+    parser.add_argument("-f","--repositoryFolder", type=str, default=os.getcwd().split('/')[-2])
+
+    return parser.parse_args()
+
+
+def createPBSFile(walltime, ncpus, memory, arrayJobSize, paramsFile, wibl1, pbsFilename, repoFilename):
     string = "#!/bin/sh\n\n"
     string += getPBSString(walltime, ncpus, memory, arrayJobSize)
     string += getParamsString(paramsFile, arrayJobSize)
@@ -14,13 +43,7 @@ def main(walltime, ncpus, memory, arrayJobSize, paramsFile, wibl1, pbsFilename, 
     string += getMatlabString(ncpus, walltime)
     string += getDataCopyString()
 
-    print(pbsFilename)
     writeToFile(pbsFilename, string)
-
-
-def writeToFile(filename, string):
-    f  = open(filename,"w+")
-    f.write(string)
 
 
 def getPBSString(walltime, ncpus, memory, arrayJobSize):
@@ -95,25 +118,10 @@ def getDataCopyString():
     return string
 
 
+def writeToFile(filename, string):
+    f  = open(filename,"w+")
+    f.write(string)
+
+
 if __name__=="__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("files", nargs='+')
-    parser.add_argument("-t","--walltime", type=str, default="24:00:00")
-    parser.add_argument("-c","--ncpus", type=int, default=16)
-    parser.add_argument("-m","--memory", type=int, default=8)
-    parser.add_argument("--wibl1", action="store_true")
-    parser.add_argument("-r","--runPBSScript", action="store_true")
-    parser.add_argument("-f","--repositoryFolder", type=str, default=os.getcwd().split('/')[-2])
-
-    args = parser.parse_args()
-
-    for currentFile in args.files:
-        currentFile = os.getcwd() + "/" + currentFile
-        arrayJobSize = sum(1 for line in open(currentFile))
-        pbsFilename = currentFile.replace('.csv', '.pbs')
-
-        main(args.walltime, args.ncpus, args.memory, arrayJobSize, currentFile, args.wibl1, pbsFilename, args.repositoryFolder)
-
-        if args.runPBSScript:
-            process = subprocess.Popen("qsub {}".format(pbsFilename).split(), stdout=subprocess.PIPE)
-            output, error = process.communicate()
+    main()
