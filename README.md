@@ -6,7 +6,7 @@ We need a separate repository because these scripts should be mostly project ind
 
 Usage:
 
-    python generate-pbs-script.py [-h] [-t WALLTIME] [-c NCPUS] [-m MEMORY]
+    python generatePBSScript.py [-h] [-t WALLTIME] [-c NCPUS] [-m MEMORY]
                                   [-r] [-f REPOSITORYFOLDER]
                                   files [files ...]
 

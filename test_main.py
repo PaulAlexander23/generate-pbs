@@ -4,7 +4,7 @@ import subprocess
 import re
 
 def test_pythonScript():
-    bashCommand = "python3 generate-pbs-script.py test.csv"
+    bashCommand = "python3 generatePBSScript.py test.csv"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     f  = open("test.pbs","r")
@@ -15,7 +15,7 @@ def test_pythonScript():
 
 
 def test_walltimeArgument():
-    bashCommand = "python3 generate-pbs-script.py -t 12:34:56 test.csv"
+    bashCommand = "python3 generatePBSScript.py -t 12:34:56 test.csv"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     f  = open("test.pbs","r")
@@ -27,7 +27,7 @@ def test_walltimeArgument():
 
 
 def test_ncpusArgument():
-    bashCommand = "python3 generate-pbs-script.py -c 8 test.csv"
+    bashCommand = "python3 generatePBSScript.py -c 8 test.csv"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     f  = open("test.pbs","r")
@@ -40,7 +40,7 @@ def test_ncpusArgument():
 
 
 def test_memoryArgument():
-    bashCommand = "python3 generate-pbs-script.py -m 32 test.csv"
+    bashCommand = "python3 generatePBSScript.py -m 32 test.csv"
     process = subprocess.Popen(bashCommand.split(), stdout=subprocess.PIPE)
     output, error = process.communicate()
     f  = open("test.pbs","r")
